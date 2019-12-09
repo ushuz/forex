@@ -1,0 +1,68 @@
+<head>
+  <style>html{ font-family: monospace }</style>
+</head>
+<body>
+  <h2>CMBC / CAD <sub>09:00-18:30</sub></h2>
+</body>
+<script src="https://unpkg.com/sockette@^2.0/dist/sockette.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@^1.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+const chartOptions = {
+  width: 800,
+  height: 200,
+  localization: {
+    dateFormat: 'yyyy-MM-dd',
+  },
+  timeScale: {
+    timeVisible: true,
+  },
+}
+const seriesOptions = {
+  priceFormat: {
+    precision: 2,
+    minMove: 0.01,
+  },
+}
+
+const chartRT = LightweightCharts.createChart(document.body, chartOptions);
+chartRT.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'Real Time' } })
+const seriesRT = chartRT.addAreaSeries(seriesOptions);
+
+const chart1m = LightweightCharts.createChart(document.body, chartOptions);
+chart1m.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'One Minute' } })
+const series1m = chart1m.addAreaSeries(seriesOptions);
+
+const chart1h = LightweightCharts.createChart(document.body, chartOptions);
+chart1h.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'One Hour' } })
+const series1h = chart1h.addAreaSeries(seriesOptions);
+
+const allSeries = {
+  "rt": seriesRT,
+  "1m": series1m,
+  "1h": series1h,
+}
+
+const timezoneOffsetSeconds = -(new Date()).getTimezoneOffset()*60
+
+const ws = new sockette(`ws://${location.host}`, {
+  timeout: 5e3,
+  maxAttempts: 10,
+  onopen: e => console.log('sockette: Connected!'),
+  onreconnect: e => console.log('sockette: Reconnecting...', e),
+  onmaximum: e => console.log('sockette: Stop Attempting!', e),
+  onclose: e => console.log('sockette: Closed!', e),
+  onerror: e => console.log('sockette: Error:', e),
+  onmessage: e => {
+    // console.log('sockette: Received:', e);
+    const data = JSON.parse(e.data)
+    console.log('sockette: Received:', data);
+    for (var k in data) {
+      const series = allSeries[k]
+      for (var p of data[k]) {
+        p.time += timezoneOffsetSeconds
+        series.update(p)
+      }
+    }
+  },
+})
+</script>
