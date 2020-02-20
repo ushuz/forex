@@ -95,7 +95,7 @@ savePoint = (point, bank, currency, t) => {
   })
 
   // ignore empty payload
-  if (!payload) return
+  if ((o => { for (let _ in o) { return false } return true })(payload)) return
 
   // broadcast point
   wss.clients.forEach(client => {
