@@ -46,7 +46,7 @@ roundTimeTo = (time, round) => {
 }
 
 const BANK = 'CMBC'
-const CURRENCY_NAME = 'CADRMB';
+const CURRENCY_NAME = process.env['CURRENCY_NAME'];
 
 const ioredis = require('ioredis')
 const redis = new ioredis(process.env['REDIS_URL'])
