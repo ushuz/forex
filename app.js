@@ -1,25 +1,29 @@
 const axios = require('axios')
-const express = require('express');
-const logger = require('morgan');
-const path = require('path');
-const websocket = require('ws');
+const express = require('express')
+const expresshbs = require('express-handlebars')
+const logger = require('morgan')
+const websocket = require('ws')
 
-const app = express();
+const app = express()
 
-const http = require('http');
-const server = http.createServer(app);
+const http = require('http')
+const server = http.createServer(app)
 const wss = new websocket.Server({
   server,
 })
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
+app.engine('.html', expresshbs({ extname: '.html', defaultLayout: false }))
+app.set('view engine', '.html')
+app.set('views', './views')
 
 /* GET index page */
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views/index.html'))
-});
+  res.render('index', { BANK, CURRENCY_NAME })
+})
 
 /* CONNECT websocket */
 wss.on('connection', async (ws) => {
@@ -46,7 +50,7 @@ roundTimeTo = (time, round) => {
 }
 
 const BANK = 'CMBC'
-const CURRENCY_NAME = process.env['CURRENCY_NAME'];
+const CURRENCY_NAME = process.env['CURRENCY_NAME']
 
 const ioredis = require('ioredis')
 const redis = new ioredis(process.env['REDIS_URL'])
@@ -125,7 +129,7 @@ loadPoints = async (bank, currency, precision) => {
   })
 }
 
-const INTERVAL = 5000;
+const INTERVAL = 5000
 
 setInterval(() => {
 
@@ -171,7 +175,7 @@ setInterval(() => {
     }
   })
   .catch(e => {
-    console.log('axios() Error:', e);
-  });
+    console.log('axios() Error:', e)
+  })
 
 }, INTERVAL)
