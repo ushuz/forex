@@ -3,17 +3,14 @@ FROM node:13-alpine
 # Create app directory
 WORKDIR /opt/code
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+# Copy dependencies manifests
+COPY package.json yarn.lock ./
 
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
+# Install app dependencies
+RUN yarn install --production
 
 # Bundle app source
 COPY . .
 
 EXPOSE 3000
-CMD [ "npm", "start" ]
+CMD [ "yarn", "start" ]
