@@ -139,7 +139,7 @@ setInterval(() => {
     headers: {
       'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148/requestByNative/cmbc.geren.5.11',
     },
-    // mode: "no-cors",
+    timeout: 5000,
   })
   .then(response => {
     const data = JSON.parse(response.data.replace(/^initHangQingNext\(|\)/g, ''))['list']
