@@ -1,0 +1,94 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forex
+spec:
+  selector:
+    matchLabels:
+      app: forex
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: forex
+    spec:
+      containers:
+      - name: forex-cad
+        env:
+        - { name: NODE_ENV, value: production }
+        - { name: PORT, value: "3000" }
+        - { name: CURRENCY_NAME, value: CADRMB }
+        - { name: REDIS_URL, value: "${REDIS_URL}" }
+        image: ushuz/forex:latest
+        ports:
+        - containerPort: 3000
+      - name: forex-usd
+        env:
+        - { name: NODE_ENV, value: production }
+        - { name: PORT, value: "3001" }
+        - { name: CURRENCY_NAME, value: USDRMB }
+        - { name: REDIS_URL, value: "${REDIS_URL}" }
+        image: ushuz/forex:latest
+        ports:
+        - containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forex
+  annotations:
+    dev.okteto.com/auto-ingress: "false"
+spec:
+  selector:
+    app: forex
+  ports:
+    - name: forex-cad
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+    - name: forex-usd
+      protocol: TCP
+      port: 3001
+      targetPort: 3001
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: forex
+spec:
+  rules:
+  - host: forex-cad-ushuz.cloud.okteto.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: forex
+          servicePort: 3000
+  - host: forex-usd-ushuz.cloud.okteto.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: forex
+          servicePort: 3001
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: forex-keepalive
+spec:
+  schedule: "0 */6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: forex-keepalive
+            image: bitnami/kubectl:1.18
+            args:
+            - scale
+            - deployment
+            - forex
+            - --replicas=1
+          restartPolicy: Never
