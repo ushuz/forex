@@ -22,15 +22,15 @@ app.set('views', './views')
 
 /* GET index page */
 app.get('/', (req, res) => {
-  res.render('index', { BANK, CURRENCY_NAME })
+  res.render('index', { BANK, CURRENCY })
 })
 
 /* CONNECT websocket */
 wss.on('connection', async (ws) => {
   console.log('ws: Client Connected!')
   const history = {
-    "1m": await loadPoints(BANK, CURRENCY_NAME, "1m"),
-    "1h": await loadPoints(BANK, CURRENCY_NAME, "1h"),
+    '1m': await loadPoints(BANK, CURRENCY, '1m'),
+    '1h': await loadPoints(BANK, CURRENCY, '1h'),
   }
   ws.send(JSON.stringify(history))
 })
@@ -41,7 +41,7 @@ module.exports = { app, server }
 class Point {
   constructor(time, value) {
     this.time = Number(time)
-    this.timeHuman = (new Date(this.time * 1000)).toLocaleString("sv-SE", { timeZone: "Asia/Shanghai" })
+    this.timeHuman = (new Date(this.time * 1000)).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })
     this.value = value
   }
   static eq(a, b) {
@@ -50,9 +50,6 @@ class Point {
 }
 
 roundTimeTo = (time, round) => { return Math.floor(Number(time) / round) * round }
-
-const BANK = 'CMBC'
-const CURRENCY_NAME = process.env['CURRENCY_NAME']
 
 const ioredis = require('ioredis')
 const redis = new ioredis(process.env['REDIS_URL'])
@@ -131,53 +128,107 @@ loadPoints = async (bank, currency, precision) => {
     })
 }
 
+class KYLC {
+  constructor(bank, currency) {
+    this.bank = bank
+    this.currency = currency
+  }
+  fetch() {
+    const today = (new Date()).toLocaleDateString('sv-SE').replaceAll('-', '')
+    axios({
+      method: 'get',
+      url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=cf70a06edef7e899706fa5a25ea01b07`,
+      headers: {
+        'User-Agent': 'kyhuilv/28000 CFNetwork/1220.1 Darwin/20.3.0',
+      },
+      timeout: INTERVAL,
+    })
+    .then(response => {
+      const data = response.data
+      for (const rp of data) {
+        // // rp sample
+        // {
+        //   "base_ccy_id": "CNY",
+        //   "capture_time": "2021-01-29 00:00:00",
+        //   "ccy_id": "CAD",
+        //   "chao_buy": 4.8806000000,
+        //   "chao_sell": 5.0342000000,
+        //   "date": "2021-01-29 00:00:00",
+        //   "exchangerate_id": 290573583,
+        //   "hui_buy": 5.0010000000,
+        //   "hui_sell": 5.0342000000,
+        //   "middle_rate": 5.0176000000,
+        //   "ref_time": "2021-01-29 17:17:31",
+        //   "source_code": "BOB"
+        // }
+
+        // transform raw data into point object
+        const point = new Point(Date.parse(`${rp.ref_time} GMT+0800`)/1000, rp.hui_sell)
+
+        // save and broadcast point
+        savePoint(point, this.bank, this.currency)
+
+        break
+      }
+    })
+  }
+}
+
+class CMBC extends KYLC {
+  fetch() {
+    axios({
+      method: 'get',
+      url: 'https://m1.cmbc.com.cn:8209/CMBC_MWS/priceServlet.shtml?action=exchangeSS&callback=initHangQingNext',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148/requestByNative/cmbc.geren.5.11',
+      },
+      timeout: INTERVAL,
+    })
+    .then(response => {
+      const data = JSON.parse(response.data.replace(/^initHangQingNext\(|\)/g, ''))['list']
+      for (const rp of data) {
+        // // rp sample
+        // {
+        //   "NEBY": "527.43",
+        //   "BYSQ": "",
+        //   "CURRENCY_NAME": "CADRMB",
+        //   "CXFG": "1",
+        //   "SLSQ": "",
+        //   "NESL": "532.03",
+        //   "LEFT_CURRENCY_NAME": "CAD",
+        //   "RIGHT_CURRENCY_NAME": "RMB",
+        //   "UP_TIME": "2019-11-13 13:53:51",
+        //   "ERCD": "00000",
+        //   "NEMD": "529.73"
+        // }
+
+        // filter point
+        if (rp.LEFT_CURRENCY_NAME !== this.currency)
+          continue
+        if (rp.CXFG !== '1')
+          continue
+
+        // transform raw data into point object
+        const point = new Point(Date.parse(`${rp.UP_TIME} GMT+0800`)/1000, rp.NESL)
+
+        // save and broadcast point
+        savePoint(point, this.bank, this.currency)
+
+        break
+      }
+    })
+    .catch(e => {
+      console.log(`fetch() Error:`, e)
+    })
+  }
+}
+
+const BANK = process.env['BANK']
+const CURRENCY = process.env['CURRENCY']
 const INTERVAL = 5000
 
 setInterval(() => {
 
-  axios({
-    method: 'get',
-    url: 'https://m1.cmbc.com.cn:8209/CMBC_MWS/priceServlet.shtml?action=exchangeSS&callback=initHangQingNext',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148/requestByNative/cmbc.geren.5.11',
-    },
-    timeout: 5000,
-  })
-  .then(response => {
-    const data = JSON.parse(response.data.replace(/^initHangQingNext\(|\)/g, ''))['list']
-    for (const rp of data) {
-      // // rp sample
-      // {
-      //   "NEBY": "527.43",
-      //   "BYSQ": "",
-      //   "CURRENCY_NAME": "CADRMB",
-      //   "CXFG": "1",
-      //   "SLSQ": "",
-      //   "NESL": "532.03",
-      //   "LEFT_CURRENCY_NAME": "CAD",
-      //   "RIGHT_CURRENCY_NAME": "RMB",
-      //   "UP_TIME": "2019-11-13 13:53:51",
-      //   "ERCD": "00000",
-      //   "NEMD": "529.73"
-      // }
-
-      // filter point
-      if (rp.CURRENCY_NAME !== CURRENCY_NAME)
-        continue
-      if (rp.CXFG !== '1')
-        continue
-
-      // transform point
-      const point = new Point(Date.parse(`${rp.UP_TIME} GMT+0800`)/1000, rp.NESL)
-
-      // save and broadcast point
-      savePoint(point, BANK, CURRENCY_NAME, rp.UP_TIME)
-
-      break
-    }
-  })
-  .catch(e => {
-    console.log('axios() Error:', e)
-  })
+  (new ({ CMBC }[BANK] || KYLC)(BANK, CURRENCY)).fetch()
 
 }, INTERVAL)
