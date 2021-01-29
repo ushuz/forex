@@ -39,9 +39,13 @@ module.exports = { app, server }
 
 // data feed
 class Point {
-  constructor (time, value) {
+  constructor(time, value) {
     this.time = Number(time)
+    this.timeHuman = (new Date(this.time * 1000)).toLocaleString("sv-SE", { timeZone: "Asia/Shanghai" })
     this.value = value
+  }
+  static eq(a, b) {
+    return a.time === b.time && a.value === b.value
   }
 }
 
@@ -65,8 +69,8 @@ savePoint = (point, bank, currency, t) => {
   var payload = {}
 
   // rt
-  if (!cursorrt || (point.time !== cursorrt.time || point.value !== cursorrt.value)) {
-    console.log(`${t} - ${point.value}`)
+  if (!cursorrt || !Point.eq(cursorrt, point)) {
+    console.log(`${bank}/${currency} - ${point.timeHuman} - ${point.value}`)
     cursorrt = point
     payload['rt'] = [point]
   }
