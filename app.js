@@ -45,9 +45,7 @@ class Point {
   }
 }
 
-roundTimeTo = (time, round) => {
-  return Math.floor(Number(time) / round) * round
-}
+roundTimeTo = (time, round) => { return Math.floor(Number(time) / round) * round }
 
 const BANK = 'CMBC'
 const CURRENCY_NAME = process.env['CURRENCY_NAME']
@@ -93,15 +91,15 @@ savePoint = (point, bank, currency, t) => {
 
   // save point
   multi
-  .exec()
-  .catch(e => {
-    console.log('savePoint() Error:', e)
-  })
+    .exec()
+    .catch(e => {
+      console.log('savePoint() Error:', e)
+    })
 
   // ignore empty payload
   if ((o => { for (let _ in o) { return false } return true })(payload)) return
 
-  // broadcast point
+  // broadcast points
   wss.clients.forEach(client => {
     client.readyState === websocket.OPEN && client.send(JSON.stringify(payload))
   })
@@ -110,23 +108,23 @@ savePoint = (point, bank, currency, t) => {
 loadPoints = async (bank, currency, precision) => {
   const key = `FOREX:${bank}:${currency}:${precision}`
   return redis
-  .lrange(key, 0, -1)
-  .then(result => {
-    let points = []
-    // construct point object and array from line format: "time,value"
-    for (const sp of result) {
-      const [time, value] = sp.split(',')
-      points.push(new Point(time, value))
-    }
-    // update cursor point time
-    if (points.length > 0) {
-      global[`cursor${precision}`] = points[points.length - 1]
-    }
-    return points
-  })
-  .catch(e => {
-    console.log('loadPoints() Error:', e)
-  })
+    .lrange(key, 0, -1)
+    .then(result => {
+      let points = []
+      // construct point object and array from line format: "time,value"
+      for (const sp of result) {
+        const [time, value] = sp.split(',')
+        points.push(new Point(time, value))
+      }
+      // update cursor point time
+      if (points.length > 0) {
+        global[`cursor${precision}`] = points[points.length - 1]
+      }
+      return points
+    })
+    .catch(e => {
+      console.log('loadPoints() Error:', e)
+    })
 }
 
 const INTERVAL = 5000
