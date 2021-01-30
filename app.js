@@ -41,7 +41,7 @@ module.exports = { app, server }
 class Point {
   constructor(time, value) {
     this.time = Number(time)
-    this.timeHuman = (new Date(this.time * 1000)).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })
+    this.timeHuman = new Date(this.time * 1000).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })
     this.value = value
   }
   static eq(a, b) {
@@ -134,7 +134,7 @@ class KYLC {
     this.currency = currency
   }
   fetch() {
-    const today = (new Date()).toLocaleDateString('sv-SE').replaceAll('-', '')
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')
     axios({
       method: 'get',
       url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=cf70a06edef7e899706fa5a25ea01b07`,
@@ -229,6 +229,6 @@ const INTERVAL = 5000
 
 setInterval(() => {
 
-  (new ({ CMBC }[BANK] || KYLC)(BANK, CURRENCY)).fetch()
+  new ({ CMBC }[BANK] || KYLC)(BANK, CURRENCY).fetch()
 
 }, INTERVAL)
