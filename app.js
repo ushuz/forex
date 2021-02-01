@@ -1,7 +1,9 @@
 const axios = require('axios')
+const crypto = require('crypto')
 const express = require('express')
 const expresshbs = require('express-handlebars')
 const logger = require('morgan')
+const strftimeCST = require('strftime').timezone(60*8)
 const websocket = require('ws')
 
 const app = express()
@@ -135,9 +137,12 @@ class KYLC {
   }
   fetch() {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')
+    // java: "s" + new SimpleDateFormat("d3MM").format(today) + "ky" + ltrim(new SimpleDateFormat("yyyy").format(today), '2');
+    const rnds = 's' + strftimeCST('%e').trim() + '3' + strftimeCST('%m') + 'ky' + strftimeCST('%Y').slice(1)
+    const code = crypto.createHash('md5').update(rnds).digest('hex')
     axios({
       method: 'get',
-      url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=5c980db6bf43cfbd8740c089fd796589`,
+      url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=${code}`,
       headers: {
         'User-Agent': 'kyhuilv/28000 CFNetwork/1220.1 Darwin/20.3.0',
       },
