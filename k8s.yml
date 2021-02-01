@@ -74,23 +74,23 @@ spec:
         backend:
           serviceName: forex
           servicePort: 3001
----
-apiVersion: batch/v1beta1
-kind: CronJob
-metadata:
-  name: forex-keepalive
-spec:
-  schedule: "0 */6 * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: forex-keepalive
-            image: bitnami/kubectl:1.18
-            args:
-            - scale
-            - deployment
-            - forex
-            - --replicas=1
-          restartPolicy: Never
+# ---
+# apiVersion: batch/v1beta1
+# kind: CronJob
+# metadata:
+#   name: forex-keepalive
+# spec:
+#   schedule: "0 */6 * * *"
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#           - name: forex-keepalive
+#             image: bitnami/kubectl:1.18
+#             args:
+#             - rollout
+#             - restart
+#             - deployment
+#             - forex
+#           restartPolicy: Never
