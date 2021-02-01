@@ -145,6 +145,10 @@ class KYLC {
     })
     .then(response => {
       const data = response.data
+      // ignore invalid response
+      if (!data) return
+      if (typeof data !== 'object') return
+
       for (const rp of data) {
         // // rp sample
         // {
