@@ -43,7 +43,7 @@ const allSeries = {
   "1h": series1h,
 }
 
-const timezoneOffsetSeconds = -(new Date()).getTimezoneOffset()*60
+const timezoneOffsetSeconds = (new Date()).getTimezoneOffset() * -60
 
 const ws = new sockette(`${location.protocol.match(/^https/) ? "wss" : "ws"}://${location.host}`, {
   timeout: 5e3,
