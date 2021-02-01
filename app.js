@@ -137,7 +137,7 @@ class KYLC {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')
     axios({
       method: 'get',
-      url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=cf70a06edef7e899706fa5a25ea01b07`,
+      url: `https://www.kuaiyilicai.com/huilv/mobile/trend_ex/${this.bank.toUpperCase()}/cny/${this.currency.toLowerCase()}/${today}/${today}?access_code=5c980db6bf43cfbd8740c089fd796589`,
       headers: {
         'User-Agent': 'kyhuilv/28000 CFNetwork/1220.1 Darwin/20.3.0',
       },
