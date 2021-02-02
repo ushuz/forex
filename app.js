@@ -172,7 +172,7 @@ class KYLC {
         // }
 
         // transform raw data into point object
-        const point = new Point(Date.parse(`${rp.ref_time} GMT+0800`)/1000, rp.hui_sell)
+        const point = new Point(Date.parse(`${rp.ref_time} GMT+0800`)/1000, rp.hui_sell * 100)
 
         // save and broadcast point
         savePoint(point, this.bank, this.currency)
