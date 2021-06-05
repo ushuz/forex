@@ -117,7 +117,8 @@ loadPoints = async (bank, currency, precision) => {
       // construct point object and array from line format: "time,value"
       for (const sp of result) {
         const [time, value] = sp.split(',')
-        points.push(new Point(time, value))
+        // use unshift() to sort points in oldest-to-latest order
+        points.unshift(new Point(time, value))
       }
       // update cursor point time
       if (points.length > 0) {
