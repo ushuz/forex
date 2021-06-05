@@ -54,7 +54,7 @@ spec:
       port: 3001
       targetPort: 3001
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: forex
@@ -64,16 +64,22 @@ spec:
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: forex
-          servicePort: 3000
+          service:
+            name: forex
+            port:
+              number: 3000
   - host: forex-usd-ushuz.cloud.okteto.net
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: forex
-          servicePort: 3001
+          service:
+            name: forex
+            port:
+              number: 3001
 # ---
 # apiVersion: batch/v1beta1
 # kind: CronJob
