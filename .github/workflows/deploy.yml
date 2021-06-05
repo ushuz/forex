@@ -35,3 +35,4 @@ jobs:
           REDIS_URL: ${{ secrets.REDIS_URL }}
         run: |
           cat k8s.yml | envsubst | kubectl apply -f -
+          kubectl rollout restart deploy forex
