@@ -235,10 +235,11 @@ class CMBC extends KYLC {
 
 const BANK = process.env['BANK']
 const CURRENCY = process.env['CURRENCY']
-const INTERVAL = 5000
+const INTERVAL = Number(process.env['INTERVAL'] || 5000)  // defaults to 5s
+
+// disable fetch with non-positive interval
+if (INTERVAL <= 0) return
 
 setInterval(() => {
-
   new ({ CMBC }[BANK] || KYLC)(BANK, CURRENCY).fetch()
-
 }, INTERVAL)
