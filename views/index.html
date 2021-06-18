@@ -1,6 +1,11 @@
 <head>
   <style>html{ font-family: monospace }</style>
   <title>{{ BANK }}/{{ CURRENCY }} - forex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: auto 1em auto auto; max-width: calc(100% - 1em); }
+    h2 { margin: 2vw; }
+  </style>
 </head>
 <body>
   <h2>{{ BANK }}/{{ CURRENCY }}</h2>
@@ -9,9 +14,9 @@
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@^3.3/dist/lightweight-charts.standalone.production.js"></script>
 <script>
 const TZ = 'Asia/Shanghai'
+const chartHeight = 180
 const chartOptions = {
-  width: 800,
-  height: 200,
+  height: chartHeight,
   localization: {
     dateFormat: 'yyyy-MM-dd',
     timeFormatter: ts => {
@@ -58,17 +63,28 @@ const seriesOptions = {
   },
 }
 
+let allCharts = []
+
 const chartRT = LightweightCharts.createChart(document.body, chartOptions)
 chartRT.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'Real Time' } })
 const seriesRT = chartRT.addAreaSeries(seriesOptions)
+allCharts.push(chartRT)
 
 const chart1m = LightweightCharts.createChart(document.body, chartOptions)
 chart1m.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'One Minute' } })
 const series1m = chart1m.addAreaSeries(seriesOptions)
+allCharts.push(chart1m)
 
 const chart1h = LightweightCharts.createChart(document.body, chartOptions)
 chart1h.applyOptions({ watermark: { visible: true, color: 'rgba(11, 94, 29, 0.4)', text: 'One Hour' } })
 const series1h = chart1h.addAreaSeries(seriesOptions)
+allCharts.push(chart1h)
+
+window.addEventListener('resize', () => {
+  for (chart of allCharts) {
+    chart.resize(document.body.offsetWidth, chartHeight)
+  }
+})
 
 const allSeries = {
   "rt": seriesRT,
