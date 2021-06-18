@@ -57,7 +57,7 @@ const ioredis = require('ioredis')
 const redis = new ioredis(process.env['REDIS_URL'])
 
 const max1m = 60 * 24   // 1d
-const max1h = 24 * 30   // 30d
+const max1h = 24 * 90   // 90d
 
 var cursorrt, cursor1m, cursor1h
 
