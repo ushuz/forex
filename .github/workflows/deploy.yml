@@ -21,26 +21,26 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ushuz/forex:latest
           push: true
-  Deploy:
-    needs: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup okteto
-        env:
-          OKTETO_TOKEN: ${{ secrets.OKTETO_TOKEN }}
-        run: |
-          curl https://get.okteto.com -sSfL | sh
-          okteto context --namespace ushuz
-          okteto context update-kubeconfig
-      - name: Setup kubectl
-        run: |
-          curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
-      - name: Apply k8s.yml
-        env:
-          REDIS_URL: ${{ secrets.REDIS_URL }}
-        run: |
-          cat k8s.yml | envsubst | kubectl apply -f -
-          kubectl rollout restart deploy forex
+  # Deploy:
+  #   needs: Build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Setup okteto
+  #       env:
+  #         OKTETO_TOKEN: ${{ secrets.OKTETO_TOKEN }}
+  #       run: |
+  #         curl https://get.okteto.com -sSfL | sh
+  #         okteto context --namespace ushuz
+  #         okteto context update-kubeconfig
+  #     - name: Setup kubectl
+  #       run: |
+  #         curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+  #         chmod +x ./kubectl
+  #         sudo mv ./kubectl /usr/local/bin/kubectl
+  #     - name: Apply k8s.yml
+  #       env:
+  #         REDIS_URL: ${{ secrets.REDIS_URL }}
+  #       run: |
+  #         cat k8s.yml | envsubst | kubectl apply -f -
+  #         kubectl rollout restart deploy forex
