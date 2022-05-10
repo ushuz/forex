@@ -92,7 +92,7 @@ const allSeries = {
   "1h": series1h,
 }
 
-const ws = new sockette(`${location.protocol.match(/^https/) ? "wss" : "ws"}://${location.host}`, {
+const ws = new sockette(`${location.href.replace(/^http/, "ws")}`, {
   timeout: 5e3,
   maxAttempts: 10,
   onopen: e => console.log('sockette: Connected!'),
